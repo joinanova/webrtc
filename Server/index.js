@@ -20,6 +20,7 @@ io.on("connection", (socket) => {
 
         emailToSocketMapping.set(emailId, socket.id);
         socket.join(roomId);
+        socket.emit("joined-room", { roomId }); //sent after the request made from client to join the room via socket.
         socket.broadcast.to(roomId).emit("user-joined", {emailId})
     });
 });

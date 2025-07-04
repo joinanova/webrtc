@@ -14,6 +14,7 @@ function App() {
       <SocketProvider>
         <Routes>
           <Route path="/" element={<HomePage/>}></Route>
+          <Route path="/room/:roomId" element={<h1>Room</h1>}></Route>
         </Routes>
       </SocketProvider>
     </>
