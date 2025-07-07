@@ -28,7 +28,7 @@ io.on("connection", (socket) => {
         socket.broadcast.to(roomId).emit("user-joined", {emailId})
     });
 
-    //after joining room
+    //after joining room, creating an offer
     socket.on('call-user', data => {
         const {emailId, offer} = data;
 
@@ -36,6 +36,14 @@ io.on("connection", (socket) => {
         const socketId = emailToSocketMapping.get(emailId);
 
         socket.to(socketId).emit('incoming-call', {from: fromEmail, offer})
+    })
+
+    //accepting offer and creating an answer
+    socket.on('call-accepted', data => {
+        const {emailId, answer} = data;
+        const socketId = emailToSocketMapping.get(emailId);
+
+        socket.to(socketId).emit('call-accepted', {answer});
     })
 });
 

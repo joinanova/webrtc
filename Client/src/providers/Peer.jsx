@@ -14,12 +14,23 @@ export const PeerProvider = (props) => {
         }]
     }), []);
 
-    const createAOffer = async () => {
+    const createAnOffer = async () => {
         const offer = await peer.createOffer();
         await peer.setLocalDescription(offer);
 
         return offer;
+    }
+
+    const createAnAnswer = async (offer) => {
+        await peer.setRemoteDescription(offer);
+        const answer = peer.createAnswer();
+        await peer.setLocalDescription(answer);
+        return answer;
+    }
+
+    const setRemoteAnswer = async(answer) => {
+        await peer.setRemoteDescription(answer);
     } 
 
-    return <PeerContext.Provider value={{peer, createAOffer}}>{props.children}</PeerContext.Provider>;
+    return <PeerContext.Provider value={{peer, createAnOffer, createAnAnswer, setRemoteAnswer}}>{props.children}</PeerContext.Provider>;
 }
