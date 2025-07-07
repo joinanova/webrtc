@@ -1,10 +1,14 @@
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useState, useRef } from "react";
 import { useSocket } from '../providers/Socket';
 import { usePeer } from '../providers/Peer';
+import ReactPlayer from 'react-player';
 
 const RoomPage = () => {
     const { socket } = useSocket();
     const { peer, createAnOffer, createAnAnswer, setRemoteAnswer } = usePeer();
+
+    const [myStream, setMyStream, sendStream] = useState(null);
+    const myVideoRef = useRef(null);
 
     const handleNewUserJoined = useCallback(async (data) => {
         const { emailId } = data;
@@ -31,6 +35,12 @@ const RoomPage = () => {
         await setRemoteAnswer(answer);
     },[setRemoteAnswer])
 
+    const getUserMediaStream = useCallback(async() => {
+        const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
+        // sendStream(stream);
+        setMyStream(stream);
+    }, [sendStream, setMyStream]);
+
     useEffect(() => {
         socket.on('user-joined', handleNewUserJoined);
         socket.on('incoming-call', handleIncomingCall);
@@ -41,11 +51,29 @@ const RoomPage = () => {
             socket.off('incoming-call', handleIncomingCall);
             socket.off('call-accepted', handleCallAccepted);
         }
-    }, [handleCallAccepted, handleNewUserJoined, handleIncomingCall, socket])
+    }, [handleCallAccepted, handleNewUserJoined, handleIncomingCall, socket]);
+
+    useEffect(() => {
+        getUserMediaStream();
+    }, [getUserMediaStream]);
+
+    useEffect(() => {
+        if (myVideoRef.current && myStream) {
+            myVideoRef.current.srcObject = myStream;
+        }
+    }, [myStream]);
 
     return (
         <div className="room-page-container">
             <h1>Room Page</h1>
+            {/* <ReactPlayer url={myStream} playing /> */}
+            <video
+                ref={myVideoRef}
+                autoPlay
+                playsInline
+                muted
+                style={{ width: "400px" }}
+            />
         </div>
     )
 }
