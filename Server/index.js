@@ -9,6 +9,9 @@ const io = new Server({
 });
 const app = express();
 
+const PORT = process.env.PORT || 8000;
+const HOST = process.env.HOST || "http://localhost";
+
 app.use(bodyParser.json());
 
 const emailToSocketMapping = new Map();
@@ -49,5 +52,5 @@ io.on("connection", (socket) => {
     })
 });
 
-app.listen(8000, () => {console.log(`Server listening on port 8000 http://localhost:8000`)});
+app.listen(8000, () => {console.log(`Server listening on port ${PORT} ${HOST}}`)});
 io.listen(8001);

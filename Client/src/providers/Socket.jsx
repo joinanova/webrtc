@@ -8,7 +8,7 @@ export const useSocket = () => {
 }
 
 export const SocketProvider = (props) => {
-    const socket = useMemo(() => io("https://socirra.onrender.com:8001"), []);
+    const socket = useMemo(() => io("https://socirra.onrender.com"), []);
 
     return(
         <SocketContext.Provider value={{socket}}>
