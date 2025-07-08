@@ -3,6 +3,8 @@ const bodyParser = require("body-parser");
 const {Server} = require("socket.io");
 const cors = require("cors");
 const http = require("http");
+
+const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server,{
@@ -10,7 +12,6 @@ const io = new Server(server,{
     origin: ["http://localhost:5173", "https://socirra.onrender.com"],
     methods: ["GET", "POST"],
 });
-const app = express();
 
 app.use(cors({
     origin: "http://localhost:5173",
