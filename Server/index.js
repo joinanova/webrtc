@@ -4,9 +4,9 @@ const {Server} = require("socket.io");
 const cors = require("cors");
 const http = require("http");
 
-const io = new Server({
+const io = new Server(server,{
     cors: true,
-    origins: ["http://localhost:5173", "https://socirra.onrender.com"],
+    origin: ["http://localhost:5173", "https://socirra.onrender.com"],
     methods: ["GET", "POST"],
 });
 const app = express();
@@ -15,6 +15,10 @@ const server = http.createServer(app);
 app.use(cors({
     origin: "http://localhost:5173",
 }));
+
+app.get("/", (req, res) => {
+  res.send("Socket.IO backend running");
+});
 
 const PORT = process.env.PORT || 8000;
 // const HOST = process.env.HOST || "http://localhost";
