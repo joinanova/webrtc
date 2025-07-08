@@ -4,6 +4,8 @@ const {Server} = require("socket.io");
 
 const io = new Server({
     cors: true,
+    origins: ["http://localhost:5173", "https://socirra.onrender.com"],
+    methods: ["GET", "POST"],
 });
 const app = express();
 
