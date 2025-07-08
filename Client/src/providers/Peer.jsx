@@ -1,10 +1,14 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
+import { useCallback } from "react";
 
 const PeerContext = React.createContext(null);
 
 export const usePeer = () => React.useContext(PeerContext);
 
 export const PeerProvider = (props) => {
+
+    const [remoteStream, setRemoteStream] = useState(null);
+
     const peer = useMemo(() => new RTCPeerConnection({
         iceServers:[{
             urls:[
@@ -33,11 +37,29 @@ export const PeerProvider = (props) => {
     }
 
     const sendStream = async(stream) => {
-        const tracks = stream.getTracks();
-        for(const track of tracks){
+        // Prevent adding tracks multiple times
+    const senders = peer.getSenders();
+    const tracks = stream.getTracks();
+
+    for (const track of tracks) {
+        const alreadyAdded = senders.some(sender => sender.track === track);
+        if (!alreadyAdded) {
             peer.addTrack(track, stream);
         }
     }
+    }
 
-    return <PeerContext.Provider value={{peer, createAnOffer, createAnAnswer, setRemoteAnswer, sendStream}}>{props.children}</PeerContext.Provider>;
+    const handleTrackEvent = useCallback((ev) => {
+        const streams = ev.streams;
+        setRemoteStream(streams[0]);
+    },[peer]);
+
+    useEffect(() => {
+        peer.addEventListener('track', handleTrackEvent);
+        return () => {
+            peer.removeEventListener('track', handleTrackEvent)
+        }
+    },[handleTrackEvent, peer])
+
+    return <PeerContext.Provider value={{peer, createAnOffer, createAnAnswer, setRemoteAnswer, sendStream, remoteStream}}>{props.children}</PeerContext.Provider>;
 }

@@ -5,20 +5,25 @@ import ReactPlayer from 'react-player';
 
 const RoomPage = () => {
     const { socket } = useSocket();
-    const { peer, createAnOffer, createAnAnswer, setRemoteAnswer } = usePeer();
+    const { peer, createAnOffer, createAnAnswer, setRemoteAnswer, sendStream, remoteStream } = usePeer();
 
-    const [myStream, setMyStream, sendStream] = useState(null);
+    const [myStream, setMyStream] = useState(null);
+    const [remoteEmailId, setRemoteEmailId] = useState();
     const myVideoRef = useRef(null);
+    const remoteVideoRef = useRef(null);
 
     const handleNewUserJoined = useCallback(async (data) => {
         const { emailId } = data;
         console.log('New user joined room', emailId);
 
+        await sendStream(myStream);
         console.log('Offer creating...')
         const offer = await createAnOffer();
         console.log("Offer created => ",offer)
 
-        socket.emit('call-user', { emailId, offer })
+        socket.emit('call-user', { emailId, offer });
+
+        setRemoteEmailId(emailId);
     }, [createAnOffer, socket]);
 
     const handleIncomingCall = useCallback(async(data) => {
@@ -27,6 +32,8 @@ const RoomPage = () => {
 
         const ans = await createAnAnswer(offer);
         socket.emit('call-accepted', {emailId: from, answer: ans});
+        
+        setRemoteEmailId(from);
     }, [createAnAnswer, socket]);
 
     const handleCallAccepted = useCallback(async(data) => {
@@ -37,9 +44,14 @@ const RoomPage = () => {
 
     const getUserMediaStream = useCallback(async() => {
         const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
-        // sendStream(stream);
         setMyStream(stream);
+        await sendStream(stream);
     }, [sendStream, setMyStream]);
+
+    const handleNegotiation = useCallback(() => {
+        const localOffer = peer.localDescription;
+        socket.emit('call-user', {emailId: remoteEmailId, offer: localOffer});
+    },[peer.localDescription, remoteEmailId, socket]);
 
     useEffect(() => {
         socket.on('user-joined', handleNewUserJoined);
@@ -63,12 +75,34 @@ const RoomPage = () => {
         }
     }, [myStream]);
 
+    useEffect(() => {
+        if(remoteVideoRef.current && remoteStream){
+            remoteVideoRef.current.srcObject = remoteStream;
+        }
+    },[remoteStream]);
+
+    useEffect(() => {
+        peer.addEventListener('negotiationneeded', handleNegotiation);
+        return () => {
+            peer.removeEventListener('negotiationneeded', handleNegotiation);
+        }
+    },[])
+
     return (
         <div className="room-page-container">
             <h1>Room Page</h1>
+            <h4>You are connected to {remoteEmailId}</h4>
             {/* <ReactPlayer url={myStream} playing /> */}
+            {/* <button className="hover:bg-green-700" onClick={e => sendStream(myStream)}>Send stream</button> */}
             <video
                 ref={myVideoRef}
+                autoPlay
+                playsInline
+                muted
+                style={{ width: "400px" }}
+            />
+            <video
+                ref={remoteVideoRef}
                 autoPlay
                 playsInline
                 muted
