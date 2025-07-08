@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const {Server} = require("socket.io");
 const cors = require("cors");
 const http = require("http");
+const server = http.createServer(app);
 
 const io = new Server(server,{
     cors: true,
@@ -10,7 +11,6 @@ const io = new Server(server,{
     methods: ["GET", "POST"],
 });
 const app = express();
-const server = http.createServer(app);
 
 app.use(cors({
     origin: "http://localhost:5173",
