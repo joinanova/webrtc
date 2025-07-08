@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const {Server} = require("socket.io");
 const cors = require("cors");
+const http = require("http");
 
 const io = new Server({
     cors: true,
@@ -9,6 +10,7 @@ const io = new Server({
     methods: ["GET", "POST"],
 });
 const app = express();
+const server = http.createServer(app);
 
 app.use(cors({
     origin: "http://localhost:5173",
@@ -57,5 +59,5 @@ io.on("connection", (socket) => {
     })
 });
 
-app.listen(PORT,'0.0.0.0', () => {console.log(`Server listening on port ${PORT}`)});
-io.listen(8001);
+server.listen(PORT,'0.0.0.0', () => {console.log(`Server listening on port ${PORT}`)});
+// io.listen(8001);
