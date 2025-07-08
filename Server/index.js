@@ -57,5 +57,5 @@ io.on("connection", (socket) => {
     })
 });
 
-app.listen(8000, () => {console.log(`Server listening on port ${PORT} ${process.env.HOST}`)});
+app.listen(PORT,'0.0.0.0', () => {console.log(`Server listening on port ${PORT}`)});
 io.listen(8001);
