@@ -1,6 +1,11 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const {Server} = require("socket.io");
+const cors = require("cors");
+
+app.use(cors({
+    origin: "http://localhost:5173",
+}));
 
 const io = new Server({
     cors: true,
@@ -10,7 +15,7 @@ const io = new Server({
 const app = express();
 
 const PORT = process.env.PORT || 8000;
-const HOST = process.env.HOST || "http://localhost";
+// const HOST = process.env.HOST || "http://localhost";
 
 app.use(bodyParser.json());
 
@@ -52,5 +57,5 @@ io.on("connection", (socket) => {
     })
 });
 
-app.listen(8000, () => {console.log(`Server listening on port ${PORT} ${HOST}}`)});
+app.listen(8000, () => {console.log(`Server listening on port ${PORT} ${process.env.HOST}`)});
 io.listen(8001);
