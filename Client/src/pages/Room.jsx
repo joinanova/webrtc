@@ -15,14 +15,13 @@ const RoomPage = () => {
     const handleNewUserJoined = useCallback(async (data) => {
         const { emailId } = data;
         console.log('New user joined room', emailId);
-
-        await sendStream(myStream);
-        console.log('Offer creating...')
+        
+        // Create and send offer
+        console.log('Creating offer...')
         const offer = await createAnOffer();
-        console.log("Offer created => ",offer)
+        console.log("Offer created => ", offer)
 
         socket.emit('call-user', { emailId, offer });
-
         setRemoteEmailId(emailId);
     }, [createAnOffer, socket]);
 
@@ -45,13 +44,15 @@ const RoomPage = () => {
     const getUserMediaStream = useCallback(async() => {
         const stream = await navigator.mediaDevices.getUserMedia({audio: true, video: true});
         setMyStream(stream);
+        // Send stream immediately when it's available
         await sendStream(stream);
-    }, [sendStream, setMyStream]);
+    }, [sendStream]);
 
-    const handleNegotiation = useCallback(() => {
-        const localOffer = peer.localDescription;
+    const handleNegotiation = useCallback(async () => {
+        console.log("Negotiation needed, creating new offer");
+        const localOffer = await createAnOffer();
         socket.emit('call-user', {emailId: remoteEmailId, offer: localOffer});
-    },[peer.localDescription, remoteEmailId, socket]);
+    }, [createAnOffer, remoteEmailId, socket]);
 
     useEffect(() => {
         socket.on('user-joined', handleNewUserJoined);
@@ -72,12 +73,14 @@ const RoomPage = () => {
     useEffect(() => {
         if (myVideoRef.current && myStream) {
             myVideoRef.current.srcObject = myStream;
+            console.log("My video stream set:", myStream);
         }
     }, [myStream]);
 
     useEffect(() => {
         if(remoteVideoRef.current && remoteStream){
             remoteVideoRef.current.srcObject = remoteStream;
+            console.log("Remote video stream set:", remoteStream);
         }
     },[remoteStream]);
 
@@ -86,7 +89,7 @@ const RoomPage = () => {
         return () => {
             peer.removeEventListener('negotiationneeded', handleNegotiation);
         }
-    },[])
+    }, [handleNegotiation, peer]);
 
     return (
         <div className="room-page-container">

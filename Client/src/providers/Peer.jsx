@@ -27,7 +27,7 @@ export const PeerProvider = (props) => {
 
     const createAnAnswer = async (offer) => {
         await peer.setRemoteDescription(offer);
-        const answer = peer.createAnswer();
+        const answer = await peer.createAnswer();
         await peer.setLocalDescription(answer);
         return answer;
     }
@@ -37,22 +37,32 @@ export const PeerProvider = (props) => {
     }
 
     const sendStream = async(stream) => {
-        // Prevent adding tracks multiple times
-    const senders = peer.getSenders();
-    const tracks = stream.getTracks();
+        console.log("Sending stream:", stream);
+        // Clear existing tracks first
+        const senders = peer.getSenders();
+        for (const sender of senders) {
+            if (sender.track) {
+                peer.removeTrack(sender);
+            }
+        }
 
-    for (const track of tracks) {
-        const alreadyAdded = senders.some(sender => sender.track === track);
-        if (!alreadyAdded) {
+        // Add new tracks
+        const tracks = stream.getTracks();
+        console.log("Adding tracks:", tracks);
+        for (const track of tracks) {
             peer.addTrack(track, stream);
         }
-    }
+        console.log("All tracks added to peer connection");
     }
 
     const handleTrackEvent = useCallback((ev) => {
+        console.log("Track event received:", ev);
         const streams = ev.streams;
-        setRemoteStream(streams[0]);
-    },[peer]);
+        console.log("Remote streams:", streams);
+        if (streams && streams[0]) {
+            setRemoteStream(streams[0]);
+        }
+    }, []);
 
     useEffect(() => {
         peer.addEventListener('track', handleTrackEvent);
